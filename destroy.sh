@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BASE_DIR="/home/ubuntu/train-ticket"
+BASE_DIR="/home/ubuntu/train-ticket-benchmarking"
 
 for dir in "$BASE_DIR"/ts-*/; do
   echo "Destroying $dir..."
