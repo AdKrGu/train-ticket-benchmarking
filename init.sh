@@ -8,7 +8,7 @@ for dir in "$BASE_DIR"/ts-*/; do
   if [ -f "$dir/main.tf" ]; then
     cd "$dir" || { echo "Failed to navigate to $dir"; exit 1; }
 
-    terraform apply -input=false
+    terraform init -input=false
     
     echo "Completed Init $dir"
   else
