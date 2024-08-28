@@ -11,7 +11,6 @@ Resources:
       SubnetId: subnet-017628f851b314f3c # Provided Subnet ID
       KeyName: Terraform_Cloudformation_Benchmarking # Provided key pair
       ImageId: ami-0522ab6e1ddcc7055 # Provided Ubuntu AMI
-      AssociatePublicIpAddress: true # Enable public IP
       Tags:
         - Key: Name
           Value: !Sub 'CF-EC2-${AWS::StackName}' # Unique name based on the stack name (usually the microservice name)
