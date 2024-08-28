@@ -1,24 +1,100 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'CloudFormation stack to deploy a microservice on a dedicated EC2 instance'
+Description: CloudFormation template to create an EC2 instance, EBS volume, S3 bucket, CloudWatch log group, IAM role, and instance profile.
+
+Parameters:
+  KeyName:
+    Type: String
+    Default: 'Terraform_Cloudformation_Benchmarking'
+    Description: Name of the key pair to access the EC2 instance.
+  SubnetId:
+    Type: String
+    Default: 'subnet-017628f851b314f3c'
+    Description: The ID of the subnet where the EC2 instance will be launched.
+  SecurityGroupId:
+    Type: String
+    Default: 'sg-05e5f12096a41cf7e'
+    Description: The ID of the security group for the EC2 instance.
+  AMI:
+    Type: String
+    Default: 'ami-0522ab6e1ddcc7055'
+    Description: The AMI ID for the EC2 instance.
 
 Resources:
-  MyInstance:
+  WebInstance:
     Type: AWS::EC2::Instance
     Properties:
-      InstanceType: t2.micro
-      SecurityGroupIds:
-        - sg-05e5f12096a41cf7e # Provided security group ID
-      SubnetId: subnet-017628f851b314f3c # Provided Subnet ID
-      KeyName: Terraform_Cloudformation_Benchmarking # Provided key pair
-      ImageId: ami-0522ab6e1ddcc7055 # Provided Ubuntu AMI
+      ImageId: !Ref AMI
+      InstanceType: t2.small
+      KeyName: !Ref KeyName
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: '0'
+          SubnetId: !Ref SubnetId
+          GroupSet:
+            - !Ref SecurityGroupId
       Tags:
         - Key: Name
-          Value: !Sub 'CF-EC2-${AWS::StackName}' # Unique name based on the stack name (usually the microservice name)
+          Value: !Sub 'Terraform-EC2-${AWS::StackName}'
+
+  EBSVolume:
+    Type: AWS::EC2::Volume
+    Properties:
+      AvailabilityZone: !Select [0, !GetAZs 'ap-south-1']
+      Size: 10
+      Tags:
+        - Key: Name
+          Value: !Sub 'Terraform-EBSSVolume-${AWS::StackName}'
+
+  EBSVolumeAttachment:
+    Type: AWS::EC2::VolumeAttachment
+    Properties:
+      InstanceId: !Ref WebInstance
+      VolumeId: !Ref EBSVolume
+      Device: /dev/xvdf
+
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'terraform-ec2-${AWS::StackName}'
+      Tags:
+        - Key: Name
+          Value: !Sub 'Terraform-S3Bucket-${AWS::StackName}'
+
+  CloudWatchLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub 'Terraform-EC2-Logs-${AWS::StackName}'
+
+  CloudWatchAgentRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'Terraform-CloudWatchAgentRole-${AWS::StackName}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service: 'ec2.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub 'Terraform-EC2InstanceProfile-${AWS::StackName}'
+      Roles:
+        - !Ref CloudWatchAgentRole
 
 Outputs:
   InstanceId:
-    Description: 'Instance ID'
-    Value: !Ref MyInstance
-  InstancePublicIP:
-    Description: 'Instance Public IP'
-    Value: !GetAtt MyInstance.PublicIp
+    Description: The instance ID of the EC2 instance
+    Value: !Ref WebInstance
+
+  BucketName:
+    Description: The name of the S3 bucket
+    Value: !Ref S3Bucket
+
+  LogGroupName:
+    Description: The name of the CloudWatch log group
+    Value: !Ref CloudWatchLogGroup
