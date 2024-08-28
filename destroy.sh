@@ -9,7 +9,7 @@ for dir in "$BASE_DIR"/ts-*/; do
 
     cd "$dir" || { echo "Failed to navigate to $dir"; exit 1; }
 
-    terraform destroy destroy.tfplan -auto-approve
+    terraform destroy destroy.tfplan
     
     echo "Completed Destroying $dir"
   else

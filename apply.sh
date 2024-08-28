@@ -9,7 +9,7 @@ for dir in "$BASE_DIR"/ts-*/; do
 
     cd "$dir" || { echo "Failed to navigate to $dir"; exit 1; }
 
-    terraform apply plan.tfplan -auto-approve
+    terraform apply plan.tfplan
     
     echo "Completed Applying $dir"
   else
