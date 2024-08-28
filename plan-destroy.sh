@@ -2,7 +2,7 @@
 
 BASE_DIR="/home/ubuntu/train-ticket-benchmarking"
 
-for dir in "$BASE_DIR"/ts-*/; do
+for dir in "$BASE_DIR"/ts-c*/; do
   echo "Planning Destroy $dir..."
 
   if [ -f "$dir/main.tf" ]; then
