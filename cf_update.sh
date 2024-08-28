@@ -13,7 +13,7 @@ for dir in "$BASE_DIR"/ts-c*/; do
       # Update the CloudFormation stack
       aws cloudformation update-stack --stack-name "$STACK_NAME" \
         --template-body file://"$dir/template.yml" \
-        --capabilities CAPABILITY_IAM
+        --capabilities CAPABILITY_NAMED_IAM
 
       echo "Started stack update for $STACK_NAME"
     else
